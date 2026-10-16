@@ -8,10 +8,12 @@ block_cipher = None
 root = os.path.abspath(os.getcwd())
 
 datas = [
-    (os.path.join(root, "app", "carpeta_app", "views", "templates"), "app/carpeta_app/views/templates"),
-    (os.path.join(root, "app", "carpeta_app", "views", "static"), "app/carpeta_app/views/static"),
-    (os.path.join(root, "app", "databases", "sql", "schema.sql"), "app/databases/sql"),
-    (os.path.join(root, "app", "databases", "config", "default_settings.json"), "app/databases/config"),
+    # El paquete "carpeta_app" se empaqueta como módulo top-level (ver pathex),
+    # así que sus datos deben vivir en la raíz del bundle, no bajo "app/".
+    (os.path.join(root, "app", "carpeta_app", "views", "templates"), "carpeta_app/views/templates"),
+    (os.path.join(root, "app", "carpeta_app", "views", "static"), "carpeta_app/views/static"),
+    (os.path.join(root, "app", "databases", "sql", "schema.sql"), "databases/sql"),
+    (os.path.join(root, "app", "databases", "config", "default_settings.json"), "databases/config"),
 ]
 
 a = Analysis(
