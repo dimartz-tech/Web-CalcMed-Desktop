@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Web-CalcMed — Plataforma de Reportes Médicos{% endblock %}</title>
+  
+  <!-- Hojas de Estilos -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}" media="print">
+  
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+  <!-- Barra de Navegación Principal -->
+  <header class="navbar no-print">
+    <a href="{{ url_for('portal.index') }}" class="nav-brand">
+      <span class="brand-icon">⚕️</span>
+      <span>Web-CalcMed</span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="{{ url_for('portal.index') }}" class="nav-link {% if request.endpoint == 'portal.index' %}active{% endif %}">Dashboard</a>
+      <a href="{{ url_for('dxa.form') }}" class="nav-link {% if 'dxa' in request.endpoint %}active{% endif %}">Densitometría (DXA)</a>
+      <a href="{{ url_for('elastografia.form') }}" class="nav-link {% if 'elastografia' in request.endpoint %}active{% endif %}">Elastografía (SWE)</a>
+    </nav>
+
+    <div class="nav-actions">
+      <button type="button" id="theme-toggle-btn" class="btn btn-outline" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;">
+        ☀️ Modo Claro
+      </button>
+      <button type="button" class="btn btn-secondary" data-modal-target="settings-modal" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;">
+        ⚙️ Membrete
+      </button>
+    </div>
+  </header>
+
+  <!-- Contenedor de Alertas Flash -->
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="no-print">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Modal de Configuración -->
+  {% include "shared/settings_modal.html" %}
+
+  <!-- Pie de Página -->
+  <footer class="footer no-print">
+    <p>Web-CalcMed v0.2.0 | Automatización y Rigor Clínico Diagnóstico (ISCD & SRU 2020) | Modo Seguro Local</p>
+  </footer>
+
+  <!-- Scripts Globales -->
+  <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

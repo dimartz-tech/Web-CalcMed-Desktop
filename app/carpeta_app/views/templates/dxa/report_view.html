@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Informe DXA — {{ patient.nombre }}{% endblock %}
+
+{% block content %}
+<!-- Barra de Acciones del Reporte -->
+<div class="report-action-bar no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+  <div>
+    <a href="{{ url_for('dxa.form') }}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">
+      ← Nuevo Estudio
+    </a>
+  </div>
+  <div style="display: flex; gap: 0.75rem;">
+    <button type="button" class="btn btn-primary" onclick="copyReportToClipboard('dxa-report-text')">
+      📋 Copiar Texto (RIS/PACS)
+    </button>
+    <button type="button" class="btn btn-secondary" onclick="window.print()">
+      🖨️ Imprimir / Guardar PDF
+    </button>
+    {% if estudio_id %}
+      <a href="{{ url_for('reportes.download_txt', tipo='dxa', estudio_id=estudio_id) }}" class="btn btn-outline">
+        💾 Descargar .txt
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Tarjeta de Resumen Clínico Diagnóstico -->
+<div class="card no-print">
+  <div class="card-header">
+    <span class="card-title">🦴 Conclusión Diagnóstica ISCD</span>
+    <span class="badge {{ evaluation.badge_class }}">{{ evaluation.global_diagnosis }}</span>
+  </div>
+  <div class="form-grid">
+    <div>
+      <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Paciente:</span>
+      <p style="font-weight: 700; font-size: 1.05rem;">{{ patient.nombre }} ({{ patient.edad }}a, {{ patient.sexo }})</p>
+    </div>
+    <div>
+      <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Criterio Aplicado:</span>
+      <p style="font-weight: 600;">{{ evaluation.score_type }} Mínimo: <strong>{{ evaluation.lowest_score }}</strong> ({{ evaluation.worst_site }})</p>
+    </div>
+    {% if extra.imc %}
+      <div>
+        <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Biometría / IMC:</span>
+        <p style="font-weight: 600;">{{ extra.imc }} kg/m² ({{ extra.categoria_imc }})</p>
+      </div>
+    {% endif %}
+    {% if comparativa %}
+      <div>
+        <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Evolución DMO:</span>
+        <p style="font-weight: 600; color: {% if comparativa.delta_pct < 0 %}var(--color-danger){% else %}var(--color-success){% endif %};">
+          {{ comparativa.delta_pct }}% ({{ 'Significativo' if comparativa.is_significant else 'Estable' }})
+        </p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Contenedor del Reporte Estructurado -->
+<div class="card">
+  <div class="card-header no-print">
+    <span class="card-title">📄 Formato Estructurado Oficial</span>
+    <span style="font-size: 0.8rem; color: var(--text-muted);">Listo para copiado o impresión</span>
+  </div>
+  <pre id="dxa-report-text" class="report-preview-box">{{ report_text }}</pre>
+</div>
+{% endblock %}

@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Densitometría Ósea (DXA) — Captura Clínica{% endblock %}
+
+{% block content %}
+<form id="dxa-form" action="{{ url_for('dxa.submit') }}" method="POST">
+  <!-- 1. Cabecera Demográfica del Paciente -->
+  {% include "shared/patient_header.html" %}
+
+  <!-- 2. Biometría y Factores de Riesgo -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">⚖️ Biometría y Factores de Riesgo Clínico</span>
+      <span id="imc_badge" class="badge badge-info" style="display: none;">IMC: ---</span>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="peso_kg">Peso Corporal (kg)</label>
+        <input type="number" step="0.1" id="peso_kg" name="peso_kg" class="form-control" placeholder="Ej. 68.5">
+      </div>
+      <div class="form-group">
+        <label for="talla_cm">Talla / Estatura (cm)</label>
+        <input type="number" step="0.5" id="talla_cm" name="talla_cm" class="form-control" placeholder="Ej. 162">
+      </div>
+      <div class="form-group" style="justify-content: flex-end; padding-bottom: 0.5rem;">
+        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+          <input type="checkbox" id="es_posmenopausica" name="es_posmenopausica" value="1" checked>
+          <span>Mujer Posmenopáusica (Aplica T-Score)</span>
+        </label>
+      </div>
+      <div class="form-group" style="justify-content: flex-end; padding-bottom: 0.5rem;">
+        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--color-danger);">
+          <input type="checkbox" id="tiene_fractura_fragilidad" name="tiene_fractura_fragilidad" value="1">
+          <span>Antecedente de Fractura por Fragilidad</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Mediciones Densitométricas por Región Anatómica -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">🦴 Mediciones Densitométricas (Absorciometría DXA)</span>
+      <span class="badge badge-neutral">Normas ISCD 2023</span>
+    </div>
+
+    <!-- 3.1 Columna Lumbar -->
+    <div id="lumbar_panel" style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <label style="font-weight: 700; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+          <input type="checkbox" id="lumbar_eval" name="lumbar_eval" value="1" checked>
+          <span>1. Columna Lumbar</span>
+        </label>
+        <select name="lumbar_region" class="form-control" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.85rem;">
+          <option value="L1-L4" selected>L1 - L4 (Total)</option>
+          <option value="L1-L3">L1 - L3 (L4 Excluida)</option>
+          <option value="L2-L4">L2 - L4 (L1 Excluida)</option>
+          <option value="L2-L3">L2 - L3 (L1 y L4 Excluidas)</option>
+        </select>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>DMO (g/cm²)</label>
+          <input type="number" step="0.001" id="lumbar_dmo" name="lumbar_dmo" class="form-control" placeholder="Ej. 0.925">
+        </div>
+        <div class="form-group">
+          <label>T-Score</label>
+          <input type="number" step="0.1" id="lumbar_t_score" name="lumbar_t_score" class="form-control" placeholder="Ej. -1.8">
+        </div>
+        <div class="form-group">
+          <label>Z-Score</label>
+          <input type="number" step="0.1" id="lumbar_z_score" name="lumbar_z_score" class="form-control" placeholder="Ej. -0.9">
+        </div>
+        <div class="form-group">
+          <label>Notas / Exclusión</label>
+          <input type="text" name="lumbar_notes" class="form-control" placeholder="Ej. Cambios degenerativos en L4">
+        </div>
+      </div>
+    </div>
+
+    <!-- 3.2 Fémur Izquierdo -->
+    <div id="femur_left_panel" style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1rem;">
+      <div style="margin-bottom: 0.75rem;">
+        <label style="font-weight: 700; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+          <input type="checkbox" id="femur_left_eval" name="femur_left_eval" value="1" checked>
+          <span>2. Fémur Proximal Izquierdo</span>
+        </label>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Cuello Femoral - DMO</label>
+          <input type="number" step="0.001" name="femur_left_neck_dmo" class="form-control" placeholder="Ej. 0.780">
+        </div>
+        <div class="form-group">
+          <label>Cuello Femoral - T-Score</label>
+          <input type="number" step="0.1" id="femur_left_neck_t_score" name="femur_left_neck_t_score" class="form-control" placeholder="Ej. -2.1">
+        </div>
+        <div class="form-group">
+          <label>Fémur Total - DMO</label>
+          <input type="number" step="0.001" name="femur_left_total_dmo" class="form-control" placeholder="Ej. 0.850">
+        </div>
+        <div class="form-group">
+          <label>Fémur Total - T-Score</label>
+          <input type="number" step="0.1" id="femur_left_total_t_score" name="femur_left_total_t_score" class="form-control" placeholder="Ej. -1.7">
+        </div>
+      </div>
+    </div>
+
+    <!-- 3.3 Fémur Derecho -->
+    <div id="femur_right_panel" style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1rem;">
+      <div style="margin-bottom: 0.75rem;">
+        <label style="font-weight: 700; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+          <input type="checkbox" id="femur_right_eval" name="femur_right_eval" value="1">
+          <span>3. Fémur Proximal Derecho (Opcional / Comparativo)</span>
+        </label>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Cuello Femoral - DMO</label>
+          <input type="number" step="0.001" name="femur_right_neck_dmo" class="form-control" placeholder="Ej. 0.790" disabled>
+        </div>
+        <div class="form-group">
+          <label>Cuello Femoral - T-Score</label>
+          <input type="number" step="0.1" id="femur_right_neck_t_score" name="femur_right_neck_t_score" class="form-control" placeholder="Ej. -2.0" disabled>
+        </div>
+        <div class="form-group">
+          <label>Fémur Total - DMO</label>
+          <input type="number" step="0.001" name="femur_right_total_dmo" class="form-control" placeholder="Ej. 0.860" disabled>
+        </div>
+        <div class="form-group">
+          <label>Fémur Total - T-Score</label>
+          <input type="number" step="0.1" id="femur_right_total_t_score" name="femur_right_total_t_score" class="form-control" placeholder="Ej. -1.6" disabled>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3.4 Radio 33% -->
+    <div id="radius33_panel" style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <label style="font-weight: 700; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+          <input type="checkbox" id="radius33_eval" name="radius33_eval" value="1">
+          <span>4. Antebrazo / Radio 33% (Hiperparatiroidismo / Fémur no evaluable)</span>
+        </label>
+        <select name="radius33_side" class="form-control" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.85rem;" disabled>
+          <option value="No dominante (Izquierdo)">Brazo No Dominante (Izq)</option>
+          <option value="No dominante (Derecho)">Brazo No Dominante (Der)</option>
+        </select>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>DMO Radio 33% (g/cm²)</label>
+          <input type="number" step="0.001" name="radius33_dmo" class="form-control" placeholder="Ej. 0.650" disabled>
+        </div>
+        <div class="form-group">
+          <label>T-Score Radio 33%</label>
+          <input type="number" step="0.1" id="radius33_t_score" name="radius33_t_score" class="form-control" placeholder="Ej. -2.3" disabled>
+        </div>
+        <div class="form-group">
+          <label>Z-Score Radio 33%</label>
+          <input type="number" step="0.1" name="radius33_z_score" class="form-control" placeholder="Ej. -1.1" disabled>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Comparativa Evolutiva (LSC) -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">📈 Análisis Comparativo Evolutivo (Opcional)</span>
+      <span class="badge badge-neutral">Mínimo Cambio Significativo (LSC ±3.0%)</span>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="prev_dmo">DMO de Estudio Previo (g/cm²)</label>
+        <input type="number" step="0.001" id="prev_dmo" name="prev_dmo" class="form-control" placeholder="Ej. 0.950 en estudio previo">
+      </div>
+      <div class="form-group">
+        <label for="prev_fecha">Fecha de Estudio Previo</label>
+        <input type="date" id="prev_fecha" name="prev_fecha" class="form-control">
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Previsualización Diagnóstica en Tiempo Real -->
+  <div class="live-diagnosis-box">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="font-weight: 700; font-size: 0.95rem;">🔍 Pre-evaluación en Tiempo Real:</span>
+      <span id="live-dxa-badge" class="badge badge-neutral">Pendiente de Mediciones</span>
+    </div>
+    <p id="live-dxa-desc" style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
+      Ingrese los valores de DMO o T-Score para previsualizar el diagnóstico según normas ISCD.
+    </p>
+  </div>
+
+  <!-- 6. Botón de Acción y Modo Efímero -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
+    <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); cursor: pointer;">
+      <input type="checkbox" name="modo_efimero" value="1">
+      <span>🛡️ Modo Efímero (Procesar solo en RAM sin persistir en disco)</span>
+    </label>
+    <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1.05rem;">
+      📄 Generar Informe DXA
+    </button>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dxa.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,37 @@
+<!-- Modal de Configuración Institucional y Membrete -->
+<div id="settings-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="card-header" style="margin-bottom: 1rem;">
+      <span class="card-title">⚙️ Membrete y Configuración</span>
+      <button type="button" class="btn btn-outline modal-close" style="padding: 0.25rem 0.5rem;">✕</button>
+    </div>
+    <form action="/api/settings" method="POST">
+      <div class="form-group" style="margin-bottom: 0.75rem;">
+        <label for="nombre_centro">Nombre de la Institución / Clínica</label>
+        <input type="text" id="nombre_centro" name="nombre_centro" class="form-control" value="{{ settings.institucion.nombre_centro if settings else '' }}">
+      </div>
+      <div class="form-group" style="margin-bottom: 0.75rem;">
+        <label for="departamento">Departamento / Servicio</label>
+        <input type="text" id="departamento" name="departamento" class="form-control" value="{{ settings.institucion.departamento if settings else '' }}">
+      </div>
+      <div class="form-group" style="margin-bottom: 0.75rem;">
+        <label for="medico_nombre">Médico Radiólogo Responsable</label>
+        <input type="text" id="medico_nombre" name="medico_nombre" class="form-control" value="{{ settings.medico.nombre if settings else '' }}">
+      </div>
+      <div class="form-grid" style="margin-bottom: 1rem;">
+        <div class="form-group">
+          <label for="medico_matricula">Matrícula Médica</label>
+          <input type="text" id="medico_matricula" name="medico_matricula" class="form-control" value="{{ settings.medico.matricula if settings else '' }}">
+        </div>
+        <div class="form-group">
+          <label for="medico_exequatur">Exequátur</label>
+          <input type="text" id="medico_exequatur" name="medico_exequatur" class="form-control" value="{{ settings.medico.exequatur if settings else '' }}">
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+        <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar Ajustes</button>
+      </div>
+    </form>
+  </div>
+</div>

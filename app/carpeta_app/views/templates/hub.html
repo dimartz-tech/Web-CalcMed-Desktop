@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Web-CalcMed{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+  <h1 style="font-size: 1.85rem; font-weight: 800; margin-bottom: 0.35rem;">
+    Plataforma de Automatización de Reportes Médicos
+  </h1>
+  <p style="color: var(--text-secondary); font-size: 1.05rem;">
+    Seleccione la herramienta diagnóstica para captura cuantitativa, validación clínica y exportación a RIS/PACS.
+  </p>
+</div>
+
+<!-- Catálogo de Herramientas -->
+<div class="tools-grid">
+  <!-- Tarjeta DXA -->
+  <div class="tool-card">
+    <span class="tool-badge">ISCD Official 2023</span>
+    <div>
+      <div class="tool-card-icon">🦴</div>
+      <h2 class="tool-card-title">Densitometría Ósea (DXA)</h2>
+      <p class="tool-card-desc">
+        Evaluación de densidad mineral ósea axial y periférica bajo guías oficiales ISCD, con discriminación automática de T vs Z-score y LSC evolutivo.
+      </p>
+      <ul class="tool-card-features">
+        <li>Columna Lumbar (L1-L4 con exclusión vertebral)</li>
+        <li>Fémur Proximal (Cuello Femoral y Total bilateral)</li>
+        <li>Antebrazo / Radio 33% (1/3 radio)</li>
+        <li>Cálculo de Mínimo Cambio Significativo (LSC ±3.0%)</li>
+      </ul>
+    </div>
+    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+      <a href="{{ url_for('dxa.form') }}" class="btn btn-primary" style="flex: 1;">
+        + Nuevo Estudio DXA
+      </a>
+    </div>
+  </div>
+
+  <!-- Tarjeta Elastografía Hepática -->
+  <div class="tool-card">
+    <span class="tool-badge">Consenso SRU 2020</span>
+    <div>
+      <div class="tool-card-icon">🩺</div>
+      <h2 class="tool-card-title">Elastografía Hepática (SWE)</h2>
+      <p class="tool-card-desc">
+        Cuantificación de rigidez por Shear Wave Elastography (2D-SWE/pSWE) con control de calidad (IQR/Mediana ≤ 30%), Regla de Cuatro y Biomarcadores FIB-4.
+      </p>
+      <ul class="tool-card-features">
+        <li>Captura de 10 muestras con cálculo reactivo de IQR</li>
+        <li>Regla de Cuatro SRU 2020 (Normal, cACLD y HPCS)</li>
+        <li>Criterios de Hipertensión Portal (Baveno VII)</li>
+        <li>Panel integrado de biomarcadores (FIB-4, APRI, De Ritis)</li>
+      </ul>
+    </div>
+    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+      <a href="{{ url_for('elastografia.form') }}" class="btn btn-primary" style="flex: 1;">
+        + Nueva Elastografía
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Historial Reciente de Estudios -->
+<div style="margin-top: 3rem;">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 1.5rem;">
+    <!-- Recientes DXA -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🦴 Últimos Estudios DXA</span>
+      </div>
+      {% if recent_dxa %}
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border-color); text-align: left; color: var(--text-muted);">
+                <th style="padding: 0.5rem;">Fecha</th>
+                <th style="padding: 0.5rem;">Paciente</th>
+                <th style="padding: 0.5rem;">Diagnóstico</th>
+                <th style="padding: 0.5rem;">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for est in recent_dxa %}
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 0.5rem;">{{ est.fecha_estudio }}</td>
+                  <td style="padding: 0.5rem; font-weight: 600;">{{ est.paciente_nombre }}</td>
+                  <td style="padding: 0.5rem;">
+                    <span class="badge {% if 'Normal' in est.diagnostico_global %}badge-success{% elif 'Osteopenia' in est.diagnostico_global %}badge-warning{% else %}badge-danger{% endif %}">
+                      {{ est.diagnostico_global }}
+                    </span>
+                  </td>
+                  <td style="padding: 0.5rem;">
+                    <a href="{{ url_for('dxa.view_study', estudio_id=est.id) }}" class="btn btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Ver</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p style="color: var(--text-muted); font-size: 0.9rem;">No hay estudios DXA registrados aún.</p>
+      {% endif %}
+    </div>
+
+    <!-- Recientes Elastografía -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🩺 Últimas Elastografías</span>
+      </div>
+      {% if recent_elastografia %}
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border-color); text-align: left; color: var(--text-muted);">
+                <th style="padding: 0.5rem;">Fecha</th>
+                <th style="padding: 0.5rem;">Paciente</th>
+                <th style="padding: 0.5rem;">Mediana</th>
+                <th style="padding: 0.5rem;">Clasificación</th>
+                <th style="padding: 0.5rem;">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for est in recent_elastografia %}
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 0.5rem;">{{ est.fecha_estudio }}</td>
+                  <td style="padding: 0.5rem; font-weight: 600;">{{ est.paciente_nombre }}</td>
+                  <td style="padding: 0.5rem;">{{ est.mediana_kpa }} kPa</td>
+                  <td style="padding: 0.5rem;">
+                    <span class="badge {% if 'Normal' in est.clasificacion_sru or 'Descarte' in est.clasificacion_sru %}badge-success{% elif 'Zona Gris' in est.clasificacion_sru %}badge-warning{% else %}badge-danger{% endif %}">
+                      {{ est.clasificacion_sru }}
+                    </span>
+                  </td>
+                  <td style="padding: 0.5rem;">
+                    <a href="{{ url_for('elastografia.view_study', estudio_id=est.id) }}" class="btn btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Ver</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p style="color: var(--text-muted); font-size: 0.9rem;">No hay elastografías registradas aún.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

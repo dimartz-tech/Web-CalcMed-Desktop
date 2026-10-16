@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Elastografía Hepática (SWE) — Captura Clínica{% endblock %}
+
+{% block content %}
+<form id="elastografia-form" action="{{ url_for('elastografia.submit') }}" method="POST">
+  <!-- 1. Cabecera Demográfica del Paciente -->
+  {% include "shared/patient_header.html" %}
+
+  <!-- 2. Contexto Clínico y Factores de Confusión -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">🩺 Contexto Clínico y Factores de Confusión</span>
+      <span class="badge badge-neutral">Protocolo US-E-14.0</span>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="indicacion">Indicación Clínica</label>
+        <input type="text" id="indicacion" name="indicacion" class="form-control" value="Evaluación y estadificación no invasiva de fibrosis hepática">
+      </div>
+      <div class="form-group">
+        <label for="etiologia">Etiología de Base</label>
+        <select id="etiologia" name="etiologia" class="form-control">
+          <option value="MASLD / MASH (Esteatohepatitis metabólica)" selected>MASLD / MASH (Esteatosis metabólica)</option>
+          <option value="Hepatitis Viral Crónica (B o C)">Hepatitis Viral Crónica (B o C)</option>
+          <option value="Hepatopatía Alcohólica">Hepatopatía Alcohólica</option>
+          <option value="Hepatopatía Colestásica / Autoinmune">Hepatopatía Colestásica / Autoinmune</option>
+          <option value="Hepatopatía Criptogénica">Hepatopatía Criptogénica</option>
+          <option value="Control Evolutivo / Chequeo Preventivo">Control Evolutivo / Chequeo Preventivo</option>
+        </select>
+      </div>
+      <div class="form-group" style="justify-content: flex-end; padding-bottom: 0.5rem;">
+        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+          <input type="checkbox" id="ayuno_adecuado" name="ayuno_adecuado" value="1" checked>
+          <span>Ayuno Adecuado (≥ 4-6 Horas) y Reposo</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Advertencias de Factores de Confusión -->
+    <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+      <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+        Descarte de Factores de Confusión (Falsos Positivos de Rigidez):
+      </span>
+      <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 0.5rem;">
+        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; color: var(--color-danger);">
+          <input type="checkbox" name="confounder_alt" value="1">
+          <span>ALT > 5x LSN (Brote inflamatorio)</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; color: var(--color-danger);">
+          <input type="checkbox" name="confounder_heart" value="1">
+          <span>Insuficiencia Cardíaca / Congestión Pasiva</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; color: var(--color-danger);">
+          <input type="checkbox" name="confounder_biliary" value="1">
+          <span>Colestasis / Obstrucción Biliar Aguda</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Mediciones Cuantitativas SWE (10 Muestras Continuas) -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">📊 Mediciones Cuantitativas de Rigidez Hepática (LSM)</span>
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <label for="unidad_medicion" style="font-size: 0.85rem; font-weight: 600;">Unidad:</label>
+        <select id="unidad_medicion" name="unidad_medicion" class="form-control" style="width: auto; padding: 0.25rem 0.65rem; font-size: 0.85rem;">
+          <option value="kPa" selected>Kilopascales (kPa)</option>
+          <option value="m/s">Metros/segundo (m/s)</option>
+        </select>
+      </div>
+    </div>
+
+    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+      Ingrese las 10 mediciones independientes obtenidas en lóbulo hepático derecho:
+    </p>
+
+    <div class="samples-grid">
+      {% for i in range(1, 11) %}
+        <div class="sample-input-box">
+          <span>Muestra {{ i }}:</span>
+          <input type="number" step="0.01" name="sample_{{ i }}" class="form-control sample-val" placeholder="Ej. {% if i == 1 %}5.4{% elif i == 2 %}5.8{% elif i == 3 %}5.2{% elif i == 4 %}5.6{% elif i == 5 %}5.5{% else %}5.3{% endif %}">
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 4. Módulo de Biomarcadores Séricos (FIB-4 / APRI) -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">🧪 Biomarcadores Séricos de Fibrosis (FIB-4 y APRI)</span>
+      <span class="badge badge-info">Correlación Bimodal Opcional</span>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="ast_got">AST / GOT (U/L)</label>
+        <input type="number" step="0.1" id="ast_got" name="ast_got" class="form-control" placeholder="Ej. 38.0">
+      </div>
+      <div class="form-group">
+        <label for="alt_gpt">ALT / GPT (U/L)</label>
+        <input type="number" step="0.1" id="alt_gpt" name="alt_gpt" class="form-control" placeholder="Ej. 42.0">
+      </div>
+      <div class="form-group">
+        <label for="plaquetas">Plaquetas (10³/µL o 10⁹/L)</label>
+        <input type="number" step="1" id="plaquetas" name="plaquetas" class="form-control" placeholder="Ej. 240">
+      </div>
+      <div class="form-group">
+        <label for="ast_uln">LSN de AST del Lab (U/L)</label>
+        <input type="number" step="0.1" id="ast_uln" name="ast_uln" class="form-control" value="{{ settings.preferencias.ast_uln_defecto if settings else 40.0 }}">
+      </div>
+    </div>
+
+    <!-- Previsualización de FIB-4 y APRI -->
+    <div style="display: flex; gap: 2rem; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); flex-wrap: wrap;">
+      <div>
+        <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Score FIB-4:</span>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span id="live-fib4-score" style="font-size: 1.25rem; font-weight: 700;">---</span>
+          <span id="live-fib4-badge" class="badge badge-neutral">Pendiente de Lab</span>
+        </div>
+      </div>
+      <div>
+        <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Score APRI:</span>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span id="live-apri-score" style="font-size: 1.25rem; font-weight: 700;">---</span>
+          <span id="live-apri-badge" class="badge badge-neutral">Pendiente de Lab</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Previsualización de Calidad y Criterio SRU 2020 en Tiempo Real -->
+  <div class="live-diagnosis-box">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+      <span style="font-weight: 700; font-size: 0.95rem;">🔍 Parámetros Cuantitativos Calculados:</span>
+      <div style="display: flex; gap: 0.5rem;">
+        <span id="live-quality-badge" class="badge badge-neutral">Pendiente de Muestras</span>
+        <span id="live-sru-badge" class="badge badge-neutral">Sin Datos</span>
+      </div>
+    </div>
+
+    <div class="live-metrics">
+      <div class="metric-item">
+        <span class="metric-label">Mediana (LSM)</span>
+        <span id="live-median" class="metric-val">---</span>
+      </div>
+      <div class="metric-item">
+        <span class="metric-label">Rango Intercuartílico (IQR)</span>
+        <span id="live-iqr" class="metric-val">---</span>
+      </div>
+      <div class="metric-item">
+        <span class="metric-label">Ratio IQR / Mediana</span>
+        <span id="live-ratio" class="metric-val">---</span>
+      </div>
+    </div>
+
+    <p id="live-sru-desc" style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">
+      Ingrese las mediciones de rigidez para evaluar la concordancia y descartar cACLD / HPCS.
+    </p>
+  </div>
+
+  <!-- 6. Botón de Acción y Modo Efímero -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
+    <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); cursor: pointer;">
+      <input type="checkbox" name="modo_efimero" value="1">
+      <span>🛡️ Modo Efímero (Procesar solo en RAM sin persistir en disco)</span>
+    </label>
+    <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1.05rem;">
+      📄 Generar Informe de Elastografía
+    </button>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/elastografia.js') }}"></script>
+{% endblock %}

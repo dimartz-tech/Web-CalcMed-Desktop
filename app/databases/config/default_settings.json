@@ -1,0 +1,22 @@
+{
+  "institucion": {
+    "nombre_centro": "Centro de Diagnóstico Médico Especializado",
+    "departamento": "Departamento de Diagnóstico por Imágenes y Radiología",
+    "direccion": "Av. Principal Médica #100, Santo Domingo, R.D.",
+    "telefono": "(809) 555-0199",
+    "logo_url": ""
+  },
+  "medico": {
+    "nombre": "Dr. Radiólogo Responsable",
+    "especialidad": "Especialista en Radiología y Diagnóstico por Imágenes",
+    "subespecialidad": "Densitometría Ósea (ISCD) / Ecografía Cuantitativa",
+    "matricula": "123456",
+    "exequatur": "987-65"
+  },
+  "preferencias": {
+    "tema_defecto": "dark",
+    "modo_efimero": false,
+    "ast_uln_defecto": 40.0,
+    "umbral_lsc_defecto": 3.0
+  }
+}
